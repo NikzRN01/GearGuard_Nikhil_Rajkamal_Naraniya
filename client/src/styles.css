@@ -177,12 +177,17 @@ a {
 }
 
 .brand {
-    margin-bottom: 12px;
+    margin-bottom: 16px;
     color: var(--accent2);
-    letter-spacing: 0.8px;
-    font-size: 15px;
+    letter-spacing: 1.2px;
+    font-size: 25px;
     font-weight: 700;
     text-transform: uppercase;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 20px rgba(90, 166, 255, 0.3);
 }
 
 .auth-card {
@@ -769,54 +774,173 @@ a {
     .input-group input {
         font-size: 16px;
         /* Prevents zoom on iOS */
-    }
-}
+    }}
 
+/* App shell */
 .app-layout {
-    display: flex;
+    position: relative;
     min-height: 100vh;
-    background: #fff;
-    color: #111;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    background: linear-gradient(135deg, #0b1220, #111a2f, #0f1626, #12203d);
+    background-size: 320% 320%;
+    animation: bgShift 18s ease infinite;
+    overflow: hidden;
 }
 
 .app-sidebar {
-    width: 240px;
-    padding: 16px;
-    border-right: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    min-height: 100vh;
+    padding: 24px 18px;
+    background: var(--glass);
+    border-right: 1px solid var(--border);
+    backdrop-filter: blur(14px);
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    background: #fff
+    gap: 12px;
+    box-shadow: 12px 0 32px rgba(0, 0, 0, 0.25);
+    z-index: 10;
 }
 
-.app-main {
-    flex: 1;
-    padding: 20px;
-    overflow: auto;
+.app-sidebar a,
+.app-sidebar summary {
+    display: block;
+    padding: 11px 12px;
+    color: var(--text);
+    border-radius: 10px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+    cursor: pointer;
+    white-space: nowrap;
 }
 
-/* Optional active link styling */
-.app-sidebar a {
-    text-decoration: none;
-    color: inherit;
-    padding: 8px 10px;
-    border-radius: 8px;
+.app-sidebar a:hover,
+.app-sidebar summary:hover {
+    background: rgba(90, 166, 255, 0.12);
+    color: var(--accent2);
+    transform: translateX(2px);
 }
 
 .app-sidebar a.active {
-    background: #f3f4f6;
+    background: linear-gradient(135deg, rgba(90, 166, 255, 0.2), rgba(54, 167, 109, 0.25));
+    color: var(--text);
+    border: 1px solid rgba(90, 166, 255, 0.35);
+}
+
+.sidebar-dropdown {
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    background: rgba(15, 22, 38, 0.8);
+    padding: 4px 6px 6px;
 }
 
 .sidebar-dropdown summary {
-    cursor: pointer;
-    padding: 8px 10px;
-    border-radius: 8px;
+    list-style: none;
+}
+
+.sidebar-dropdown[open] summary {
+    background: rgba(90, 166, 255, 0.08);
+}
+
+.sidebar-dropdown summary::-webkit-details-marker {
+    display: none;
 }
 
 .sidebar-submenu {
-    display: flex;
-    flex-direction: column;
+    display: grid;
     gap: 6px;
-    padding-left: 12px;
-    margin-top: 6px;
+    padding: 6px 6px 2px 6px;
+}
+
+.app-main {
+    padding: 24px 32px 32px;
+    color: var(--text);
+    position: relative;
+    z-index: 1;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(90, 166, 255, 0.12);
+    color: var(--accent2);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.container {
+    background: rgba(16, 26, 44, 0.7);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35);
+    animation: fadeUp 0.4s ease both;
+}
+
+.container h1 {
+    margin: 0 0 8px;
+    font-size: 24px;
+}
+
+.container p {
+    margin: 0;
+    color: var(--muted);
+}
+
+.card-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.card {
+    padding: 16px;
+    border-radius: 14px;
+    background: rgba(13, 20, 34, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.25);
+}
+
+.card h2 {
+    margin: 8px 0 0;
+    font-size: 32px;
+    color: var(--text);
+}
+
+.muted {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+@media (max-width: 900px) {
+    .app-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .app-sidebar {
+        position: relative;
+        min-height: unset;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .app-sidebar a,
+    .app-sidebar summary {
+        flex: 1 0 auto;
+        text-align: center;
+    }
 }
