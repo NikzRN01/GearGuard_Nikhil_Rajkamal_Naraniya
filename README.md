@@ -2,6 +2,8 @@
 
 GearGuard is a simple maintenance management portal built for the Odoo Virtual Hackathon.
 
+https://gearguardodoo.vercel.app/login
+ 
 It consists of:
 - **Client**: React + Vite (UI)
 - **Server**: Node.js + Express + SQLite (API + persistence)
