@@ -33,13 +33,22 @@ const validatePassword = (password) => {
 // Sign Up Route
 router.post('/signup', async (req, res) => {
   try {
-    const { name, email, password, reEnterPassword } = req.body;
+    const { name, email, password, reEnterPassword, role } = req.body;
     
     // Validate required fields
     if (!name || !email || !password || !reEnterPassword) {
       return res.status(400).json({ 
         success: false, 
         message: 'All fields are required' 
+      });
+    }
+    
+    // Validate role if provided
+    const validRoles = ['admin', 'manager', 'technician', 'user'];
+    if (role && !validRoles.includes(role)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid role. Must be: admin, manager, technician, or user' 
       });
     }
     
@@ -81,8 +90,8 @@ router.post('/signup', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     
     // Insert new user
-    const stmt = db.prepare('INSERT INTO users (name, email, password) VALUES (?, ?, ?)');
-    const result = stmt.run(name, email, hashedPassword);
+    const stmt = db.prepare('INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)');
+    const result = stmt.run(name, email, hashedPassword, role || 'user');
     
     res.status(201).json({ 
       success: true, 
