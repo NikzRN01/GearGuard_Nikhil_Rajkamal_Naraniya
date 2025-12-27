@@ -1,20 +1,33 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { api } from '../services/api';
 
 export default function Teams() {
     const [showForm, setShowForm] = useState(false);
 
-    const [rows, setRows] = useState([
-        { id: 1, name: 'Internal Maintenance', members: 'Anas Makari', company: 'My Company (San Francisco)' },
-        { id: 2, name: 'Metrology', members: 'Marc Demo', company: 'My Company (San Francisco)' },
-        { id: 3, name: 'Subcontractor', members: 'Maggie Davidson', company: 'My Company (San Francisco)' },
-    ]);
+    const [rows, setRows] = useState([]);
 
     const [form, setForm] = useState({
         name: '',
         members: '',
         company: 'My Company (San Francisco)',
     });
+
+    // Fetch teams from backend on component mount
+    useEffect(() => {
+        fetchTeams();
+    }, []);
+
+    async function fetchTeams() {
+        try {
+            const { data } = await api.get('/teams');
+            if (data?.success) {
+                setRows(data.data);
+            }
+        } catch (err) {
+            console.error('Error fetching teams:', err);
+        }
+    }
 
     function openNew() {
         setForm({ name: '', members: '', company: 'My Company (San Francisco)' });
@@ -30,18 +43,24 @@ export default function Teams() {
         setForm((prev) => ({ ...prev, [name]: value }));
     }
 
-    function onSubmit(e) {
+    async function onSubmit(e) {
         e.preventDefault();
 
-        const newRow = {
-            id: Date.now(),
-            name: form.name.trim(),
-            members: form.members.trim(),
-            company: form.company.trim(),
-        };
+        try {
+            // Create team in backend
+            const { data } = await api.post('/teams', {
+                name: form.name.trim()
+            });
 
-        setRows((prev) => [newRow, ...prev]);
-        setShowForm(false);
+            if (data?.success) {
+                // Refresh teams list from backend
+                await fetchTeams();
+                setShowForm(false);
+            }
+        } catch (err) {
+            console.error('Error creating team:', err);
+            alert(err?.response?.data?.message || 'Failed to create team');
+        }
     }
 
     return (
@@ -73,8 +92,8 @@ export default function Teams() {
                         {rows.map((r) => (
                             <tr key={r.id}>
                                 <td>{r.name}</td>
-                                <td>{r.members}</td>
-                                <td>{r.company}</td>
+                                <td>{r.members || 'No members yet'}</td>
+                                <td>{r.company || 'My Company (San Francisco)'}</td>
                             </tr>
                         ))}
                     </tbody>
