@@ -1,9 +1,5 @@
-<<<<<<< HEAD
 import React, { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-=======
-import React, { useState } from 'react';
->>>>>>> cc0b8745e139c3e64b7eee205506beefdf0eafed
 
 export default function Teams() {
     const [showForm, setShowForm] = useState(false);
