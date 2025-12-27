@@ -1,15 +1,24 @@
 import React from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 
 export default function App() {
+  const location = useLocation();
+  const isEquipmentPage = location.pathname.startsWith('/app/equipment');
 
   return (
     <div className="app-layout">
+      <div className="auth-backdrop">
+        <span className="orb orb-a" />
+        <span className="orb orb-b" />
+        <span className="orb orb-c" />
+      </div>
+      
       <aside className="app-sidebar">
-        <NavLink to="/app">Home</NavLink>
+        <div className="brand" style={{ marginTop: 4 }}>GearGuard</div>
+        <NavLink to="/app" end>Home</NavLink>
         <NavLink to="/app/calendar">Maintenance Calendar</NavLink>
-        <details className="sidebar-dropdown">
+        <details className="sidebar-dropdown" open={isEquipmentPage}>
           <summary>Equipment</summary>
           <div className="sidebar-submenu">
             <NavLink to="/app/equipment/work-center">Work Center</NavLink>
