@@ -101,7 +101,7 @@ const DashboardHome = () => {
             <option value={DEFAULT_COMPANY}>{DEFAULT_COMPANY}</option>
           </select>
 
-          <button type="button" className="btn-accent" onClick={() => navigate('/app/requests')}>
+          <button type="button" className="btn-accent" onClick={() => navigate('/app/requests', { state: { openNew: true } })}>
             New Request
           </button>
           <button type="button" className="btn-secondary" onClick={load} disabled={loading}>

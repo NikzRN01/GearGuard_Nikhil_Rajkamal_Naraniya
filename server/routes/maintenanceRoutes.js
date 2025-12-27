@@ -6,7 +6,7 @@ const router = express.Router();
 // Get all maintenance requests
 router.get('/', (req, res) => {
   try {
-    const { status, type, team_id, assigned_to, scheduled_date } = req.query;
+    const { status, type, team_id, assigned_to, scheduled_date, equipment_id, work_center_id } = req.query;
     
     let query = `
       SELECT 
@@ -52,6 +52,16 @@ router.get('/', (req, res) => {
     if (scheduled_date) {
       query += ' AND DATE(mr.scheduled_date) = DATE(?)';
       params.push(scheduled_date);
+    }
+
+    if (equipment_id) {
+      query += ' AND mr.equipment_id = ?';
+      params.push(equipment_id);
+    }
+
+    if (work_center_id) {
+      query += ' AND mr.work_center_id = ?';
+      params.push(work_center_id);
     }
     
     query += ' ORDER BY mr.created_at DESC';

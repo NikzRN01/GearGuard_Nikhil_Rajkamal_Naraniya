@@ -1,21 +1,72 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { api } from '../services/api';
 
 export default function Calendar() {
-	const [currentDate, setCurrentDate] = useState(new Date(2025, 11, 18)); // December 18, 2025
+	const [currentDate, setCurrentDate] = useState(new Date());
 	const [view, setView] = useState('week');
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState('');
+	const [scheduledRequests, setScheduledRequests] = useState([]);
 
-	// Sample scheduled requests
-	const scheduledRequests = [
-		{
-			id: 1,
-			title: 'Competent Mink',
-			date: new Date(2025, 11, 18),
-			startTime: '14:00',
-			endTime: '15:00',
-			equipment: 'CNC Machine #3',
-			priority: 'medium'
+	const toDateOnly = (value) => {
+		if (!value) return null;
+		// If value is YYYY-MM-DD, force local midnight to avoid timezone shifting
+		if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+			return new Date(`${value}T00:00:00`);
 		}
-	];
+		const d = new Date(value);
+		return Number.isNaN(d.getTime()) ? null : d;
+	};
+
+	const formatHHmm = (d) => {
+		const hh = String(d.getHours()).padStart(2, '0');
+		const mm = String(d.getMinutes()).padStart(2, '0');
+		return `${hh}:${mm}`;
+	};
+
+	const buildEventTimes = (scheduledDate) => {
+		const d = toDateOnly(scheduledDate);
+		if (!d) {
+			return { date: null, startTime: '09:00', endTime: '10:00' };
+		}
+
+		// If backend provided no time info (midnight), default to a morning slot
+		if (d.getHours() === 0 && d.getMinutes() === 0) {
+			const start = new Date(d);
+			start.setHours(9, 0, 0, 0);
+			const end = new Date(d);
+			end.setHours(10, 0, 0, 0);
+			return { date: d, startTime: formatHHmm(start), endTime: formatHHmm(end) };
+		}
+
+		const start = d;
+		const end = new Date(d);
+		end.setHours(end.getHours() + 1);
+		return { date: d, startTime: formatHHmm(start), endTime: formatHHmm(end) };
+	};
+
+	useEffect(() => {
+		let cancelled = false;
+		const load = async () => {
+			setError('');
+			setLoading(true);
+			try {
+				const { data } = await api.get('/maintenance/calendar');
+				if (cancelled) return;
+				const list = data?.data || [];
+				setScheduledRequests(list);
+			} catch (e) {
+				if (cancelled) return;
+				setError(e?.response?.data?.message || 'Failed to load calendar requests');
+			} finally {
+				if (!cancelled) setLoading(false);
+			}
+		};
+		load();
+		return () => {
+			cancelled = true;
+		};
+	}, []);
 
 	const getWeekDays = () => {
 		const start = new Date(currentDate);
@@ -108,6 +159,24 @@ export default function Calendar() {
 		return { top: `${top}px`, height: `${height}px` };
 	};
 
+	const events = useMemo(() => {
+		return scheduledRequests
+			.map((req) => {
+				const times = buildEventTimes(req.scheduled_date);
+				if (!times.date) return null;
+				return {
+					id: req.id,
+					title: req.subject || 'Scheduled Maintenance',
+					date: times.date,
+					startTime: times.startTime,
+					endTime: times.endTime,
+					priority: 'medium',
+					equipment: req.equipment_name || req.work_center_name || '',
+				};
+			})
+			.filter(Boolean);
+	}, [scheduledRequests]);
+
 	return (
 		<div className="container">
 			<div className="calendar-header">
@@ -126,6 +195,12 @@ export default function Calendar() {
 					</select>
 				</div>
 			</div>
+
+			{error && (
+				<div className="alert alert-error" style={{ marginBottom: 12 }}>
+					{error}
+				</div>
+			)}
 
 			<div className="calendar-content">
 				<div className="calendar-main">
@@ -161,10 +236,11 @@ export default function Calendar() {
 										{timeSlots.map((time) => (
 											<div key={time} className="calendar-time-cell"></div>
 										))}
-										{scheduledRequests
+										{events
 											.filter(req => 
 												req.date.getDate() === day.getDate() &&
-												req.date.getMonth() === day.getMonth()
+												req.date.getMonth() === day.getMonth() &&
+												req.date.getFullYear() === day.getFullYear()
 											)
 											.map(event => (
 												<div

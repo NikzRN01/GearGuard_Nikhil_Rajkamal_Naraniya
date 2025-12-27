@@ -1,32 +1,33 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
+import { api } from '../services/api';
 
 
 export default function MachineTools() {
+    const navigate = useNavigate();
     const [query, setQuery] = useState('');
 
-    const [rows, setRows] = useState([
-        {
-            id: 1,
-            name: 'Samsung Monitor 15"',
-            employee: 'Tejas Modi',
-            department: 'Admin',
-            serial: 'MT/125/22778837',
-            technician: 'Mitchell Admin',
-            category: 'Monitors',
-            company: 'My Company (San Francisco)',
-        },
-        {
-            id: 2,
-            name: 'Acer Laptop',
-            employee: 'Bhaumik P',
-            department: 'Technician',
-            serial: 'MT/122/11112222',
-            technician: 'Marc Demo',
-            category: 'Computers',
-            company: 'My Company (San Francisco)',
-        },
-    ]);
+    const [rows, setRows] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const loadEquipment = async () => {
+        setError('');
+        setLoading(true);
+        try {
+            const { data } = await api.get('/equipment');
+            setRows(data?.data || []);
+        } catch (e) {
+            setError(e?.response?.data?.message || 'Failed to load equipment');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadEquipment();
+    }, []);
 
     const [showForm, setShowForm] = useState(false);
 
@@ -78,19 +79,9 @@ export default function MachineTools() {
     function onSubmit(e) {
         e.preventDefault();
 
-        const newRow = {
-            id: Date.now(),
-            name: form.name || '(Unnamed)',
-            employee: form.employee || '-',
-            department: form.department || '-',
-            serial: form.serial || '-',
-            technician: form.technician || '-',
-            category: form.category || '-',
-            company: form.company || '-',
-        };
-
-        setRows((prev) => [newRow, ...prev]);
+        // Keep this modal purely UI-only for now; refresh from backend to stay consistent.
         setShowForm(false);
+        loadEquipment();
     }
 
 
@@ -100,12 +91,12 @@ export default function MachineTools() {
         return rows.filter((r) =>
             [
                 r.name,
-                r.employee,
+                r.assigned_employee_name,
                 r.department,
-                r.serial,
-                r.technician,
+                r.serial_number,
+                r.team_name,
                 r.category,
-                r.company,
+                r.location,
             ]
                 .join(' ')
                 .toLowerCase()
@@ -154,27 +145,38 @@ export default function MachineTools() {
 
                     <tbody>
                         {filtered.map((r) => (
-                            <tr key={r.id}>
-                                <td>{r.name}</td>
-                                <td>{r.employee}</td>
-                                <td>{r.department}</td>
-                                <td>{r.serial}</td>
-                                <td>{r.technician}</td>
-                                <td>{r.category}</td>
-                                <td>{r.company}</td>
+                            <tr
+                                key={r.id}
+                                className="table-row-click"
+                                onClick={() => navigate(`/app/requests?equipment_id=${r.id}`)}
+                                title="Open related requests"
+                            >
+                                <td style={{ color: 'var(--accent2)', fontWeight: 600 }}>{r.name}</td>
+                                <td>{r.assigned_employee_name || '-'}</td>
+                                <td>{r.department || '-'}</td>
+                                <td>{r.serial_number || '-'}</td>
+                                <td>{r.team_name || '-'}</td>
+                                <td>{r.category || '-'}</td>
+                                <td>{r.location || '-'}</td>
                             </tr>
                         ))}
 
                         {filtered.length === 0 && (
                             <tr>
                                 <td colSpan={7} className="table-empty">
-                                    No equipment found.
+                                    {loading ? 'Loading…' : 'No equipment found.'}
                                 </td>
                             </tr>
                         )}
                     </tbody>
                 </table>
             </div>
+
+            {error && (
+                <div className="alert alert-error" style={{ marginTop: 12 }}>
+                    {error}
+                </div>
+            )}
 
             {showForm &&
                 createPortal(
