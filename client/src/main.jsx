@@ -6,7 +6,6 @@ import Login from './pages/Login.jsx';
 import Signup from './pages/Signup.jsx';
 import DashboardHome from './pages/DashboardHome.jsx';
 import Calendar from './pages/Calendar.jsx';
-import Equipment from './pages/Equipment.jsx';
 import WorkCenter from './pages/WorkCenter.jsx';
 import MachineTools from './pages/MachineTools.jsx';
 import Requests from './pages/Requests.jsx';
@@ -25,7 +24,6 @@ root.render(
         <Route path="/app" element={<App />}>
           <Route index element={<DashboardHome />} />
           <Route path="calendar" element={<Calendar />} />
-          <Route path="equipment" element={<Equipment />} />
           <Route path="equipment/work-center" element={<WorkCenter />} />
           <Route path="equipment/machine-tools" element={<MachineTools />} />
           <Route path="requests" element={<Requests />} />
